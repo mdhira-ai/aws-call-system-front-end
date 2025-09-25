@@ -18,10 +18,10 @@ export default function App() {
   // Register user with Socket.IO
   const login = () => {
     if (!username) return;
-    const socket = io("ec2-52-43-54-108.us-west-2.compute.amazonaws.com:3000");
+    const socket = io("call.borealsoftwarecompany.com:3000");
     setmysocket(socket);
     if (mysocket) mysocket.emit("register", username);
-    setPeer(new Peer(username, { host: "ec2-52-43-54-108.us-west-2.compute.amazonaws.com", port: 9000, path: "/" }));
+    setPeer(new Peer(username, { host: "call.borealsoftwarecompany.com", port: 9000, path: "/" ,secure: true}));
     setLoggedIn(true);
   };
 
