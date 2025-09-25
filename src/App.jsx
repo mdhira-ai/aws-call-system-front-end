@@ -18,7 +18,7 @@ export default function App() {
   // Register user with Socket.IO
   const login = () => {
     if (!username) return;
-    const socket = io("call.borealsoftwarecompany.com:3000");
+    const socket = io("call.borealsoftwarecompany.com:3000", { secure: true });
     setmysocket(socket);
     if (mysocket) mysocket.emit("register", username);
     setPeer(new Peer(username, { host: "call.borealsoftwarecompany.com", port: 9000, path: "/" ,secure: true}));
