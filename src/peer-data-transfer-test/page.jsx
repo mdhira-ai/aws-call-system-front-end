@@ -17,9 +17,10 @@ function DataTransferTest() {
 
     // Option 2: Use custom server with TURN servers
     const peer = new Peer({
-      host: "52.43.54.108",
-      port: 9000,
-      path: "/",
+      host: "call.borealsoftwarecompany.com",
+      port: 443,
+      path: "/peerjs",
+      secure: true,
       config: {
         iceServers: [
           {
