@@ -21,8 +21,31 @@ export default function App() {
       path: "/socket.io",
       secure: true,
     });
+    // const socket = io("http://localhost:3000");
     setmysocket(socket);
-    if (mysocket) mysocket.emit("register", username);
+    
+    // Set up socket event listeners immediately
+    socket.on("online-users", (users) => {
+      console.log("Received online users:", users);
+      setOnlineUsers(users.filter((u) => u !== username));
+    });
+
+    socket.on("incoming-call", ({ from }) => {
+      console.log("Incoming call from:", from);
+      setIncomingCall(from);
+    });
+
+    socket.on("call-response", ({ from, accepted }) => {
+      console.log("Call response:", { from, accepted });
+      if (!accepted) alert(`${from} rejected your call.`);
+    });
+    
+    // Register user after setting up listeners
+    socket.emit("register", username);
+    
+    // Set up PeerJS
+    // const peer = new Peer(username);
+    // setPeer(peer);
     setPeer(
       new Peer(username, {
         host: "call.borealsoftwarecompany.com",
@@ -34,29 +57,22 @@ export default function App() {
     setLoggedIn(true);
   };
 
-  // Handle online users
-  useEffect(() => {
-    if (!mysocket || !username) return;
-    mysocket.on("online-users", (users) =>
-      setOnlineUsers(users.filter((u) => u !== username))
-    );
-
-    mysocket.on("incoming-call", ({ from }) => {
-      setIncomingCall(from);
-    });
-
-    mysocket.on("call-response", ({ from, accepted }) => {
-      if (!accepted) alert(`${from} rejected your call.`);
-    });
-  }, [username]);
-
   // Handle PeerJS events
   useEffect(() => {
     if (!peer) return;
 
     peer.on("call", (call) => {
+      console.log("Incoming PeerJS call from:", call.peer);
       setIncomingCall(call.peer);
       currentCall.current = call;
+    });
+
+    peer.on("open", (id) => {
+      console.log("PeerJS connection opened with ID:", id);
+    });
+
+    peer.on("error", (error) => {
+      console.error("PeerJS error:", error);
     });
   }, [peer]);
 
@@ -64,7 +80,7 @@ export default function App() {
   const callUser = async (remoteId) => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: false,
+        video: true,
         audio: true,
       });
       localVideoRef.current.srcObject = stream;
@@ -144,23 +160,39 @@ export default function App() {
         </div>
       ) : (
         <div className="grid grid-cols-3 gap-4">
+          {/* Debug Info */}
+          <div className="col-span-3 mb-4 p-2 bg-gray-100 rounded">
+            <h3 className="font-bold">Debug Info:</h3>
+            <p>Username: {username}</p>
+            <p>Socket ID: {mysocket?.id}</p>
+            <p>Peer ID: {peer?.id}</p>
+            <p>Socket Connected: {mysocket?.connected ? 'Yes' : 'No'}</p>
+            <p>Peer Connected: {peer?.open ? 'Yes' : 'No'}</p>
+            <p>Online Users Count: {onlineUsers.length}</p>
+            <p>Online Users: {onlineUsers.join(', ') || 'None'}</p>
+          </div>
+
           {/* Online Users */}
           <div>
-            <h2 className="font-bold mb-2">Online Users</h2>
-            {onlineUsers.map((user) => (
-              <div
-                key={user}
-                className="flex justify-between items-center mb-2"
-              >
-                <span>{user}</span>
-                <button
-                  onClick={() => callUser(user)}
-                  className="px-2 py-1 bg-green-500 text-white rounded"
+            <h2 className="font-bold mb-2">Online Users ({onlineUsers.length})</h2>
+            {onlineUsers.length === 0 ? (
+              <p className="text-gray-500">No other users online</p>
+            ) : (
+              onlineUsers.map((user) => (
+                <div
+                  key={user}
+                  className="flex justify-between items-center mb-2"
                 >
-                  Call
-                </button>
-              </div>
-            ))}
+                  <span>{user}</span>
+                  <button
+                    onClick={() => callUser(user)}
+                    className="px-2 py-1 bg-green-500 text-white rounded"
+                  >
+                    Call
+                  </button>
+                </div>
+              ))
+            )}
           </div>
           {/* call controls */}
           {
