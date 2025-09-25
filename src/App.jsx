@@ -18,7 +18,7 @@ export default function App() {
   // Register user with Socket.IO
   const login = () => {
     if (!username) return;
-    const socket = io("http://52.43.54.108:3000");
+    const socket = io("https://ec2-52-43-54-108.us-west-2.compute.amazonaws.com:3000");
     setmysocket(socket);
     if (mysocket) mysocket.emit("register", username);
     setPeer(new Peer(username, { host: "52.43.54.108", port: 9000, path: "/" }));
