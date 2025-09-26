@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { io } from "socket.io-client";
 import Peer from "peerjs";
+import NetworkDebugger from "./components/NetworkDebugger.jsx";
 
 export default function App() {
   const [mysocket, setmysocket] = useState(null);
@@ -55,7 +56,43 @@ export default function App() {
         port: 443,
         path: "/peerjs",
         secure: true,
-        
+        config: {
+          iceServers: [
+            // Google's public STUN servers
+            { urls: "stun:stun.l.google.com:19302" },
+            { urls: "stun:stun1.l.google.com:19302" },
+            { urls: "stun:stun2.l.google.com:19302" },
+            { urls: "stun:stun3.l.google.com:19302" },
+            { urls: "stun:stun4.l.google.com:19302" },
+            // Additional STUN servers for redundancy
+            { urls: "stun:stun.stunprotocol.org:3478" },
+            { urls: "stun:stun.voiparound.com" },
+            { urls: "stun:stun.voipbuster.com" },
+            { urls: "stun:stun.voipstunt.com" },
+            { urls: "stun:stun.voxgratia.org" },
+            // OpenRelay TURN servers (free tier available)
+            {
+              urls: "turn:openrelay.metered.ca:80",
+              username: "openrelayproject",
+              credential: "openrelayproject"
+            },
+            {
+              urls: "turn:openrelay.metered.ca:443",
+              username: "openrelayproject",
+              credential: "openrelayproject"
+            },
+            {
+              urls: "turn:openrelay.metered.ca:443?transport=tcp",
+              username: "openrelayproject",
+              credential: "openrelayproject"
+            }
+          ],
+          iceCandidatePoolSize: 10,
+          bundlePolicy: "max-bundle",
+          rtcpMuxPolicy: "require",
+          iceTransportPolicy: "all"
+        },
+        debug: 2 // Enable debug logging to troubleshoot connection issues
       })
     );
     setLoggedIn(true);
@@ -96,6 +133,23 @@ export default function App() {
         remoteVideoRef.current.srcObject = remoteStream;
       });
 
+      // Monitor connection state
+      call.peerConnection.onconnectionstatechange = () => {
+        console.log("Connection state:", call.peerConnection.connectionState);
+        if (call.peerConnection.connectionState === 'failed') {
+          console.error("Connection failed - this often indicates NAT/firewall issues");
+          alert("Connection failed. This may be due to network/firewall issues.");
+        }
+      };
+
+      call.peerConnection.oniceconnectionstatechange = () => {
+        console.log("ICE connection state:", call.peerConnection.iceConnectionState);
+        if (call.peerConnection.iceConnectionState === 'failed') {
+          console.error("ICE connection failed - NAT traversal failed");
+          alert("Connection failed due to network restrictions. Try from a different network.");
+        }
+      };
+
       mysocket.emit("call-user", { from: username, to: remoteId });
     } catch (err) {
       alert(
@@ -118,6 +172,23 @@ export default function App() {
       currentCall.current.on("stream", (remoteStream) => {
         remoteVideoRef.current.srcObject = remoteStream;
       });
+
+      // Monitor connection state for accepted calls
+      currentCall.current.peerConnection.onconnectionstatechange = () => {
+        console.log("Connection state:", currentCall.current.peerConnection.connectionState);
+        if (currentCall.current.peerConnection.connectionState === 'failed') {
+          console.error("Connection failed - this often indicates NAT/firewall issues");
+          alert("Connection failed. This may be due to network/firewall issues.");
+        }
+      };
+
+      currentCall.current.peerConnection.oniceconnectionstatechange = () => {
+        console.log("ICE connection state:", currentCall.current.peerConnection.iceConnectionState);
+        if (currentCall.current.peerConnection.iceConnectionState === 'failed') {
+          console.error("ICE connection failed - NAT traversal failed");
+          alert("Connection failed due to network restrictions. Try from a different network.");
+        }
+      };
 
       mysocket.emit("call-response", {
         from: username,
@@ -239,6 +310,13 @@ export default function App() {
               />
             </div>
           </div>
+
+          {/* Network Debugger */}
+          {currentCall.current && (
+            <div className="col-span-3">
+              <NetworkDebugger peer={peer} callObject={currentCall.current} />
+            </div>
+          )}
         </div>
       )}
 

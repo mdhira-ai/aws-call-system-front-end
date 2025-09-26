@@ -21,6 +21,7 @@ function Calltest() {
     incomingCallData,
     callNotification,
     setCallNotification,
+    currentCall,
   } = useMyPeer();
 
   return (
@@ -70,14 +71,20 @@ function Calltest() {
 
               {/* Call Status */}
               {callStatus && (
-                <div className={`px-4 py-2 rounded text-center font-semibold ${
-                  callStatus === "calling" ? "bg-yellow-100 text-yellow-800" :
-                  callStatus === "incoming" ? "bg-blue-100 text-blue-800" :
-                  callStatus === "connected" ? "bg-green-100 text-green-800" :
-                  "bg-gray-100 text-gray-800"
-                }`}>
+                <div
+                  className={`px-4 py-2 rounded text-center font-semibold ${
+                    callStatus === "calling"
+                      ? "bg-yellow-100 text-yellow-800"
+                      : callStatus === "incoming"
+                        ? "bg-blue-100 text-blue-800"
+                        : callStatus === "connected"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-gray-100 text-gray-800"
+                  }`}
+                >
                   {callStatus === "calling" && "Calling..."}
-                  {callStatus === "incoming" && `Incoming call from ${incomingCallData?.from}`}
+                  {callStatus === "incoming" &&
+                    `Incoming call from ${incomingCallData?.from}`}
                   {callStatus === "connected" && "Call Connected"}
                 </div>
               )}
@@ -85,12 +92,26 @@ function Calltest() {
               {/* Audio Elements */}
               <div className="flex gap-4">
                 <div className="flex-1">
-                  <label className="block text-sm font-medium mb-2">Your Audio</label>
-                  <audio autoPlay muted ref={localAudioRef} className="w-full" />
+                  <label className="block text-sm font-medium mb-2">
+                    Your Audio
+                  </label>
+                  <audio
+                    autoPlay
+                    muted
+                    ref={localAudioRef}
+                    className="w-full"
+                  />
                 </div>
                 <div className="flex-1">
-                  <label className="block text-sm font-medium mb-2">Remote Audio</label>
-                  <audio autoPlay controls ref={remoteAudioRef} className="w-full" />
+                  <label className="block text-sm font-medium mb-2">
+                    Remote Audio
+                  </label>
+                  <audio
+                    autoPlay
+                    controls
+                    ref={remoteAudioRef}
+                    className="w-full"
+                  />
                 </div>
               </div>
 
@@ -127,7 +148,8 @@ function Calltest() {
                       <h2 className="font-bold mb-2">Call Active</h2>
                       <div className="flex flex-row gap-4 items-center justify-between">
                         <span className="mb-2">
-                          Connected with: {incomingCallData ? incomingCallData.from : "Unknown"}
+                          Connected with:{" "}
+                          {incomingCallData ? incomingCallData.from : "Unknown"}
                         </span>
                         <button
                           onClick={endCall}
@@ -196,6 +218,8 @@ function Calltest() {
           </>
         )}
       </div>
+
+     
     </div>
   );
 }
