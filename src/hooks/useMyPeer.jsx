@@ -24,6 +24,43 @@ export default function useMyPeer() {
   const localAudioRef = useRef(null);
   const remoteAudioRef = useRef(null);
 
+  // Network change detection and ICE restart
+  useEffect(() => {
+    const handleNetworkChange = () => {
+      console.log('Network changed — restarting ICE');
+      if (currentCall && currentCall.peerConnection) {
+        console.log('Attempting ICE restart...');
+        currentCall.peerConnection.restartIce();
+      }
+    };
+
+    const handleOnline = () => {
+      console.log('Device came online');
+      handleNetworkChange();
+    };
+
+    const handleOffline = () => {
+      console.log('Device went offline');
+    };
+
+    // Listen for network changes
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    // Listen for connection type changes (experimental)
+    if ('connection' in navigator) {
+      navigator.connection.addEventListener('change', handleNetworkChange);
+    }
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      if ('connection' in navigator) {
+        navigator.connection.removeEventListener('change', handleNetworkChange);
+      }
+    };
+  }, [currentCall]);
+
   useEffect(() => {
     if (callstatus === "rejected") {
       setCallStatus("");
@@ -132,6 +169,9 @@ export default function useMyPeer() {
             username: "webrtcuser",
             credential: "strongpassword123",
           },
+          // Add Google's STUN servers for redundancy
+          { urls: "stun:stun.l.google.com:19302" },
+          { urls: "stun:stun1.l.google.com:19302" },
         ],
         // iceServers: [
         //   {
@@ -162,6 +202,9 @@ export default function useMyPeer() {
         bundlePolicy: "max-bundle",
         rtcpMuxPolicy: "require",
         iceTransportPolicy: "all",
+        // Add configuration for better network change handling
+        iceRestart: true,
+        continualGatheringPolicy: "gather_continually",
         debug: 3, // Enable debug logging to troubleshoot connection issues
       },
       debug: 2, // Enable debug logging to troubleshoot connection issues
@@ -256,6 +299,15 @@ export default function useMyPeer() {
             "Connection failed - this often indicates NAT/firewall issues"
           );
           setCallStatus("error");
+        } else if (call.peerConnection.connectionState === "disconnected") {
+          console.log("Connection disconnected - attempting to reconnect...");
+          // Don't immediately set error, wait a bit for potential reconnection
+          setTimeout(() => {
+            if (call.peerConnection.connectionState === "disconnected") {
+              console.log("Still disconnected, attempting ICE restart");
+              call.peerConnection.restartIce();
+            }
+          }, 3000);
         }
       };
 
@@ -267,6 +319,21 @@ export default function useMyPeer() {
         if (call.peerConnection.iceConnectionState === "failed") {
           console.error("ICE connection failed - NAT traversal failed");
           setCallStatus("error");
+        } else if (call.peerConnection.iceConnectionState === "disconnected") {
+          console.log("ICE disconnected - network may have changed");
+          // Attempt ICE restart after a short delay
+          setTimeout(() => {
+            if (call.peerConnection.iceConnectionState === "disconnected") {
+              console.log("Attempting ICE restart due to disconnection");
+              call.peerConnection.restartIce();
+            }
+          }, 2000);
+        } else if (call.peerConnection.iceConnectionState === "connected" || 
+                   call.peerConnection.iceConnectionState === "completed") {
+          console.log("ICE connection restored");
+          if (callStatus === "error") {
+            setCallStatus("connected");
+          }
         }
       };
 
@@ -338,6 +405,14 @@ export default function useMyPeer() {
             "Connection failed - this often indicates NAT/firewall issues"
           );
           setCallStatus("error");
+        } else if (currentCall.peerConnection.connectionState === "disconnected") {
+          console.log("Connection disconnected - attempting to reconnect...");
+          setTimeout(() => {
+            if (currentCall.peerConnection.connectionState === "disconnected") {
+              console.log("Still disconnected, attempting ICE restart");
+              currentCall.peerConnection.restartIce();
+            }
+          }, 3000);
         }
       };
 
@@ -349,6 +424,20 @@ export default function useMyPeer() {
         if (currentCall.peerConnection.iceConnectionState === "failed") {
           console.error("ICE connection failed - NAT traversal failed");
           setCallStatus("error");
+        } else if (currentCall.peerConnection.iceConnectionState === "disconnected") {
+          console.log("ICE disconnected - network may have changed");
+          setTimeout(() => {
+            if (currentCall.peerConnection.iceConnectionState === "disconnected") {
+              console.log("Attempting ICE restart due to disconnection");
+              currentCall.peerConnection.restartIce();
+            }
+          }, 2000);
+        } else if (currentCall.peerConnection.iceConnectionState === "connected" || 
+                   currentCall.peerConnection.iceConnectionState === "completed") {
+          console.log("ICE connection restored");
+          if (callStatus === "error") {
+            setCallStatus("connected");
+          }
         }
       };
 
