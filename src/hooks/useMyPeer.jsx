@@ -82,18 +82,20 @@ export default function useMyPeer() {
 
     peer.on("error", (error) => {
       console.error("PeerJS error:", error);
-      
+
       // Handle specific error types
-      if (error.type === 'peer-unavailable') {
+      if (error.type === "peer-unavailable") {
         console.error("Target peer is not available");
         setCallStatus("error");
-      } else if (error.type === 'network') {
-        console.error("Network error - check internet connection and firewall settings");
+      } else if (error.type === "network") {
+        console.error(
+          "Network error - check internet connection and firewall settings"
+        );
         setCallStatus("error");
-      } else if (error.type === 'socket-error') {
+      } else if (error.type === "socket-error") {
         console.error("Socket connection error - server might be unreachable");
         setCallStatus("error");
-      } else if (error.type === 'server-error') {
+      } else if (error.type === "server-error") {
         console.error("PeerJS server error");
         setCallStatus("error");
       }
@@ -119,41 +121,37 @@ export default function useMyPeer() {
       secure: true,
       config: {
         iceServers: [
-          // Google's public STUN servers
-          { urls: "stun:stun.l.google.com:19302" },
-          { urls: "stun:stun1.l.google.com:19302" },
-          { urls: "stun:stun2.l.google.com:19302" },
-          { urls: "stun:stun3.l.google.com:19302" },
-          { urls: "stun:stun4.l.google.com:19302" },
-          // Additional STUN servers for redundancy
-          { urls: "stun:stun.stunprotocol.org:3478" },
-          { urls: "stun:stun.voiparound.com" },
-          { urls: "stun:stun.voipbuster.com" },
-          { urls: "stun:stun.voipstunt.com" },
-          { urls: "stun:stun.voxgratia.org" },
-          // OpenRelay TURN servers (free tier available)
           {
-            urls: "turn:openrelay.metered.ca:80",
-            username: "openrelayproject",
-            credential: "openrelayproject"
+            urls: "stun:stun.relay.metered.ca:80",
           },
           {
-            urls: "turn:openrelay.metered.ca:443",
-            username: "openrelayproject",
-            credential: "openrelayproject"
+            urls: "turn:global.relay.metered.ca:80",
+            username: "d51ecb19f97a5830625eefdc",
+            credential: "DRGYTduNob80idwd",
           },
           {
-            urls: "turn:openrelay.metered.ca:443?transport=tcp",
-            username: "openrelayproject",
-            credential: "openrelayproject"
-          }
+            urls: "turn:global.relay.metered.ca:80?transport=tcp",
+            username: "d51ecb19f97a5830625eefdc",
+            credential: "DRGYTduNob80idwd",
+          },
+          {
+            urls: "turn:global.relay.metered.ca:443",
+            username: "d51ecb19f97a5830625eefdc",
+            credential: "DRGYTduNob80idwd",
+          },
+          {
+            urls: "turns:global.relay.metered.ca:443?transport=tcp",
+            username: "d51ecb19f97a5830625eefdc",
+            credential: "DRGYTduNob80idwd",
+          },
         ],
         iceCandidatePoolSize: 10,
         bundlePolicy: "max-bundle",
         rtcpMuxPolicy: "require",
-        iceTransportPolicy: "all"
+        iceTransportPolicy: "all",
+        debug: 3 // Enable debug logging to troubleshoot connection issues
       },
-      debug: 2 // Enable debug logging to troubleshoot connection issues
+      debug: 2, // Enable debug logging to troubleshoot connection issues
     });
     setPeer(newPeer);
     peerRef.current = newPeer;
@@ -208,8 +206,6 @@ export default function useMyPeer() {
         setCallStatus("connected");
       });
 
-      
-
       call.on("close", () => {
         console.log("Call ended by remote peer");
         setCurrentCall(null);
@@ -230,7 +226,7 @@ export default function useMyPeer() {
         console.error("Call error:", error);
         setCurrentCall(null);
         setCallStatus("error");
-        
+
         // Clean up streams on error
         if (localAudioRef.current && localAudioRef.current.srcObject) {
           const stream = localAudioRef.current.srcObject;
@@ -242,15 +238,20 @@ export default function useMyPeer() {
       // Monitor connection state
       call.peerConnection.onconnectionstatechange = () => {
         console.log("Connection state:", call.peerConnection.connectionState);
-        if (call.peerConnection.connectionState === 'failed') {
-          console.error("Connection failed - this often indicates NAT/firewall issues");
+        if (call.peerConnection.connectionState === "failed") {
+          console.error(
+            "Connection failed - this often indicates NAT/firewall issues"
+          );
           setCallStatus("error");
         }
       };
 
       call.peerConnection.oniceconnectionstatechange = () => {
-        console.log("ICE connection state:", call.peerConnection.iceConnectionState);
-        if (call.peerConnection.iceConnectionState === 'failed') {
+        console.log(
+          "ICE connection state:",
+          call.peerConnection.iceConnectionState
+        );
+        if (call.peerConnection.iceConnectionState === "failed") {
           console.error("ICE connection failed - NAT traversal failed");
           setCallStatus("error");
         }
@@ -315,16 +316,24 @@ export default function useMyPeer() {
 
       // Monitor connection state for accepted calls
       currentCall.peerConnection.onconnectionstatechange = () => {
-        console.log("Connection state:", currentCall.peerConnection.connectionState);
-        if (currentCall.peerConnection.connectionState === 'failed') {
-          console.error("Connection failed - this often indicates NAT/firewall issues");
+        console.log(
+          "Connection state:",
+          currentCall.peerConnection.connectionState
+        );
+        if (currentCall.peerConnection.connectionState === "failed") {
+          console.error(
+            "Connection failed - this often indicates NAT/firewall issues"
+          );
           setCallStatus("error");
         }
       };
 
       currentCall.peerConnection.oniceconnectionstatechange = () => {
-        console.log("ICE connection state:", currentCall.peerConnection.iceConnectionState);
-        if (currentCall.peerConnection.iceConnectionState === 'failed') {
+        console.log(
+          "ICE connection state:",
+          currentCall.peerConnection.iceConnectionState
+        );
+        if (currentCall.peerConnection.iceConnectionState === "failed") {
           console.error("ICE connection failed - NAT traversal failed");
           setCallStatus("error");
         }
