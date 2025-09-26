@@ -121,35 +121,48 @@ export default function useMyPeer() {
       secure: true,
       config: {
         iceServers: [
+          { urls: "stun:call.borealsoftwarecompany.com:3478" },
           {
-            urls: "stun:stun.relay.metered.ca:80",
+            urls: "turn:call.borealsoftwarecompany.com:3478",
+            username: "webrtcuser",
+            credential: "strongpassword123",
           },
           {
-            urls: "turn:global.relay.metered.ca:80",
-            username: "d51ecb19f97a5830625eefdc",
-            credential: "DRGYTduNob80idwd",
-          },
-          {
-            urls: "turn:global.relay.metered.ca:80?transport=tcp",
-            username: "d51ecb19f97a5830625eefdc",
-            credential: "DRGYTduNob80idwd",
-          },
-          {
-            urls: "turn:global.relay.metered.ca:443",
-            username: "d51ecb19f97a5830625eefdc",
-            credential: "DRGYTduNob80idwd",
-          },
-          {
-            urls: "turns:global.relay.metered.ca:443?transport=tcp",
-            username: "d51ecb19f97a5830625eefdc",
-            credential: "DRGYTduNob80idwd",
+            urls: "turns:call.borealsoftwarecompany.com:5349",
+            username: "webrtcuser",
+            credential: "strongpassword123",
           },
         ],
+        // iceServers: [
+        //   {
+        //     urls: "stun:stun.relay.metered.ca:80",
+        //   },
+        //   {
+        //     urls: "turn:global.relay.metered.ca:80",
+        //     username: "d51ecb19f97a5830625eefdc",
+        //     credential: "DRGYTduNob80idwd",
+        //   },
+        //   {
+        //     urls: "turn:global.relay.metered.ca:80?transport=tcp",
+        //     username: "d51ecb19f97a5830625eefdc",
+        //     credential: "DRGYTduNob80idwd",
+        //   },
+        //   {
+        //     urls: "turn:global.relay.metered.ca:443",
+        //     username: "d51ecb19f97a5830625eefdc",
+        //     credential: "DRGYTduNob80idwd",
+        //   },
+        //   {
+        //     urls: "turns:global.relay.metered.ca:443?transport=tcp",
+        //     username: "d51ecb19f97a5830625eefdc",
+        //     credential: "DRGYTduNob80idwd",
+        //   },
+        // ],
         iceCandidatePoolSize: 10,
         bundlePolicy: "max-bundle",
         rtcpMuxPolicy: "require",
         iceTransportPolicy: "all",
-        debug: 3 // Enable debug logging to troubleshoot connection issues
+        debug: 3, // Enable debug logging to troubleshoot connection issues
       },
       debug: 2, // Enable debug logging to troubleshoot connection issues
     });
