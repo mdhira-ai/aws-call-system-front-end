@@ -30,6 +30,7 @@ export default function App() {
       setOnlineUsers(users.filter((u) => u !== username));
     });
 
+    // i am now accepting calls
     socket.on("incoming-call", ({ from }) => {
       console.log("Incoming call from:", from);
       setIncomingCall(from);
@@ -46,12 +47,15 @@ export default function App() {
     // Set up PeerJS
     // const peer = new Peer(username);
     // setPeer(peer);
+
+    // signaling server details
     setPeer(
       new Peer(username, {
         host: "call.borealsoftwarecompany.com",
         port: 443,
         path: "/peerjs",
         secure: true,
+        
       })
     );
     setLoggedIn(true);
@@ -84,6 +88,7 @@ export default function App() {
         audio: true,
       });
       localVideoRef.current.srcObject = stream;
+
       const call = peer.call(remoteId, stream);
       currentCall.current = call;
 
